@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -398,6 +399,16 @@
   </section>
 
 </main>
+
+<!-- Phone fallback: press-and-hold save -->
+<div id="saveOverlay" class="hidden fixed inset-0 z-[90] items-center justify-center p-4" style="background: rgba(20,14,8,0.92);">
+  <div class="placard max-w-sm w-full text-center p-5 rounded-sm" style="max-height: 94vh; overflow:auto;">
+    <h3 class="font-display font-black text-2xl">Save Your Strip</h3>
+    <p class="font-type text-sm mt-2 leading-relaxed">Press and hold the picture, then choose <b>Save to Photos</b> (iPhone) or <b>Download image</b> (Android).</p>
+    <img id="saveImg" alt="Your photostrip" class="mx-auto my-4" style="width: min(60vw, 220px); height:auto; box-shadow: 0 8px 20px rgba(0,0,0,0.4);">
+    <button id="btn-save-close" class="btn-vintage">Close</button>
+  </div>
+</div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -982,6 +993,17 @@
   /* ------------------------------------------------------------------
      EXPORT
   ------------------------------------------------------------------ */
+  function isMobileDevice() {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+      (navigator.maxTouchPoints > 1 && /Mac/i.test(navigator.platform));
+  }
+
+  function showSaveOverlay(url) {
+    $('saveImg').src = url;
+    $('saveOverlay').classList.remove('hidden');
+    $('saveOverlay').style.display = 'flex';
+  }
+
   async function downloadStrip() {
     try { await state.renderPromise; } catch (e) {}
     var url;
@@ -991,6 +1013,29 @@
       toast('Sorry, the photostrip could not be exported.');
       return;
     }
+
+    // Phones: use the share sheet so the image can go straight to Photos / Files
+    if (isMobileDevice()) {
+      try {
+        if (navigator.share && navigator.canShare) {
+          var blob = await new Promise(function (resolve) { strip.toBlob(resolve, 'image/png'); });
+          if (blob) {
+            var file = new File([blob], 'vintage_life4cuts_strip.png', { type: 'image/png' });
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({ files: [file], title: 'Life 4 Cuts' });
+              toast('Choose \u201CSave Image\u201D to keep it in Photos \u2726');
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;   // user closed the share sheet
+      }
+      // No share support: show the image to press-and-hold save
+      showSaveOverlay(url);
+      return;
+    }
+
     var a = document.createElement('a');
     a.href = url;
     a.download = 'vintage_life4cuts_strip.png';
@@ -1041,6 +1086,10 @@
   $('btn-retake').addEventListener('click', openDarkroom);
   $('btn-home').addEventListener('click', function () { go('idle'); });
   $('btn-download').addEventListener('click', downloadStrip);
+  $('btn-save-close').addEventListener('click', function () {
+    $('saveOverlay').classList.add('hidden');
+    $('saveOverlay').style.display = 'none';
+  });
 
   $('filterGroup').addEventListener('click', function (e) {
     var b = e.target.closest('[data-filter]');
