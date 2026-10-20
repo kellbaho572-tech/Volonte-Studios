@@ -1022,7 +1022,7 @@
           if (blob) {
             var file = new File([blob], 'vintage_Volonte_strip.png', { type: 'image/png' });
             if (navigator.canShare({ files: [file] })) {
-              await navigator.share({ files: [file], title: 'Volonté Studios' });
+              await navigator.share({ files: [file], title: 'Volonté' });
               toast('Choose \u201CSave Image\u201D to keep it in Photos \u2726');
               return;
             }
