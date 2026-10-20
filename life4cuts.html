@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life 4 Cuts — Vintage Photobooth</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Special+Elite&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          parchment: '#f4f1ea',
+          aged: '#ebdcb9',
+          cream: '#f8f3e6',
+          sepia: '#5b4630',
+          charcoal: '#2b2a28',
+          brass: '#b98f46',
+          ink: '#3b2f22'
+        },
+        fontFamily: {
+          display: ['"Playfair Display"', 'Georgia', 'serif'],
+          type: ['"Special Elite"', '"Courier Prime"', 'Courier New', 'monospace']
+        }
+      }
+    }
+  };
+</script>
+
+<style>
+  html, body { min-height: 100%; }
+  body {
+    background-color: #f4f1ea;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.55), transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(150,110,60,0.22), transparent 65%);
+    color: #3b2f22;
+    font-family: "Special Elite", "Courier Prime", monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Global soft film grain */
+  .grain {
+    position: fixed; inset: 0; z-index: 60; pointer-events: none;
+    opacity: 0.32; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.27  0 0 0 0 0.17  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .vignette {
+    position: fixed; inset: 0; z-index: 59; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(80,50,20,0.22) 100%);
+  }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: flex; animation: screenIn .6s ease both; }
+  @keyframes screenIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* Matte cardstock paper */
+  .paper {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0) 40%),
+      #f8f3e6;
+    box-shadow:
+      inset 0 1px 0 #fffdf6,
+      inset 0 0 0 1px rgba(120,90,50,0.18),
+      0 1px 2px rgba(60,40,15,0.25),
+      0 12px 28px rgba(70,48,20,0.28);
+    border-radius: 3px;
+  }
+  .paper-aged {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 40%),
+      #ebdcb9;
+    box-shadow:
+      inset 0 1px 0 rgba(255,250,230,0.8),
+      inset 0 0 0 1px rgba(110,80,40,0.3),
+      inset 0 0 40px rgba(130,90,40,0.18),
+      0 12px 28px rgba(70,48,20,0.3);
+    border-radius: 3px;
+  }
+
+  /* Double-rule ornament border */
+  .double-rule {
+    border: 1px solid #5b4630;
+    outline: 1px solid rgba(91,70,48,0.55);
+    outline-offset: 5px;
+  }
+
+  /* Embossed brass plaque button */
+  .plaque {
+    position: relative;
+    background: linear-gradient(145deg, #d8b66f 0%, #9a7432 42%, #c19a4d 58%, #765626 100%);
+    border: 6px double #3b2a14;
+    border-radius: 6px;
+    color: #2b1b08;
+    text-shadow: 0 1px 0 rgba(255,236,180,0.75), 0 -1px 0 rgba(0,0,0,0.25);
+    box-shadow:
+      inset 0 2px 2px rgba(255,238,180,0.65),
+      inset 0 -3px 5px rgba(0,0,0,0.35),
+      0 0 0 4px #2b1d0f,
+      0 14px 24px rgba(60,35,10,0.45);
+    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+    cursor: pointer;
+  }
+  .plaque:hover { transform: translateY(-2px); filter: brightness(1.07); }
+  .plaque:active {
+    transform: translateY(2px);
+    box-shadow:
+      inset 0 3px 6px rgba(0,0,0,0.4),
+      0 0 0 4px #2b1d0f,
+      0 5px 10px rgba(60,35,10,0.4);
+  }
+  .plaque:disabled { filter: grayscale(0.6) brightness(0.85); cursor: not-allowed; transform: none; }
+  .plaque::before, .plaque::after {
+    content: ""; position: absolute; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f1deaa, #5e4219 70%);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.5);
+  }
+  .plaque::before { left: 10px; }
+  .plaque::after { right: 10px; }
+
+  /* Secondary vintage buttons */
+  .btn-vintage {
+    font-family: "Special Elite", monospace;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #fbf7ea, #e9dcba);
+    color: #3b2f22;
+    border: 1.5px solid #5b4630;
+    border-radius: 3px;
+    box-shadow: 0 2px 0 #5b4630, 0 5px 10px rgba(70,48,20,0.25);
+    padding: .65rem 1rem;
+    transition: transform .12s ease, box-shadow .12s ease, background .15s ease, color .15s ease;
+    cursor: pointer;
+  }
+  .btn-vintage:hover { background: linear-gradient(180deg, #fffaf0, #f1e4c2); }
+  .btn-vintage:active { transform: translateY(2px); box-shadow: 0 0 0 #5b4630, 0 2px 4px rgba(70,48,20,0.25); }
+  .btn-vintage.is-active {
+    background: linear-gradient(180deg, #4a3a29, #2f2418);
+    color: #f4e8c9;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.55), 0 1px 0 #fff8e0;
+    transform: translateY(1px);
+  }
+  .btn-vintage:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-vintage:focus-visible, .plaque:focus-visible { outline: 3px solid #b98f46; outline-offset: 3px; }
+
+  /* Aged wooden frame */
+  .wood {
+    background:
+      repeating-linear-gradient(92deg, #4a2f1a 0 6px, #55361e 6px 11px, #3e2614 11px 15px, #4d311b 15px 22px),
+      #4a2f1a;
+    border-radius: 6px;
+    padding: 16px;
+    box-shadow:
+      inset 0 0 0 2px #2a1a0d,
+      inset 0 0 18px rgba(0,0,0,0.6),
+      0 16px 34px rgba(50,30,10,0.45);
+  }
+  @media (min-width: 640px) { .wood { padding: 22px; } }
+  .lens-well {
+    position: relative; overflow: hidden; background: #0e0a07;
+    border: 5px solid #1a120b; border-radius: 3px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.9), 0 0 0 2px #6a4a2a;
+  }
+
+  /* Camera & shot slots */
+  #video { transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: sepia(0.2) contrast(0.98) brightness(1.02); }
+  .slot {
+    aspect-ratio: 340 / 235; position: relative; overflow: hidden;
+    background: #d9c9a0; border: 1.5px solid #5b4630; border-radius: 2px;
+    box-shadow: inset 0 2px 5px rgba(60,40,15,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Playfair Display", serif; font-weight: 700; font-size: 1.4rem; color: rgba(91,70,48,0.5);
+  }
+  .slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: develop 1.2s ease both; }
+  @keyframes develop { from { filter: sepia(1) brightness(1.8) blur(3px); opacity: 0.3; } to { filter: none; opacity: 1; } }
+
+  /* Countdown */
+  #countNum {
+    font-family: "Playfair Display", serif; font-weight: 900; font-style: italic;
+    font-size: clamp(7rem, 26vw, 16rem); line-height: 1; color: #fbf4de;
+    text-shadow: 0 0 30px rgba(0,0,0,0.65), 4px 4px 0 rgba(60,35,10,0.8);
+  }
+  #countNum.pop { animation: pop 1s ease-out both; }
+  @keyframes pop {
+    0% { transform: scale(1.5); opacity: 0; }
+    20% { transform: scale(1); opacity: 1; }
+    85% { opacity: 1; }
+    100% { transform: scale(0.85); opacity: 0; }
+  }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 20; }
+  #flash.fire { opacity: 1; transition: none; }
+  #flash.fade { opacity: 0; transition: opacity .55s ease-out; }
+
+  /* Camera error placard */
+  .placard {
+    background: #f4ead0; color: #3b2f22; border: 3px double #5b4630;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
+
+  /* Photostrip display */
+  .strip-holder { transform: rotate(-1.2deg); }
+  .strip-holder canvas { display: block; width: 100%; height: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.35), 0 18px 34px rgba(50,30,10,0.45); }
+  .tape {
+    position: absolute; width: 90px; height: 26px; background: rgba(226,204,150,0.78);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25); z-index: 5;
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0 3px, transparent 3px 6px);
+  }
+
+  .swatch { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #3b2f22; vertical-align: -3px; margin-right: 8px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 30px); opacity: 0; z-index: 80;
+    background: #2b2a28; color: #f1e6cc; padding: .7rem 1.2rem; border-radius: 3px;
+    font-family: "Special Elite", monospace; letter-spacing: .05em; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    transition: all .35s ease; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .film-hole-row { display: flex; gap: 10px; justify-content: space-between; padding: 0 6px; }
+  .film-hole { width: 14px; height: 9px; background: #f4f1ea; border-radius: 2px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen.active, .slot img, #countNum.pop { animation: none; }
+  }
+</style>
+</head>
+
+<body class="min-h-screen">
+<div class="grain"></div>
+<div class="vignette"></div>
+
+<main class="relative min-h-screen w-full">
+
+  <!-- ===================== SCREEN 1 : THE PARLOR ===================== -->
+  <section id="screen-idle" class="screen active min-h-screen flex-col items-center justify-center px-4 py-10">
+    <div class="paper-aged double-rule w-full max-w-3xl px-6 py-10 sm:px-12 sm:py-14 text-center relative">
+      <p class="font-type text-xs sm:text-sm tracking-[0.35em] text-sepia uppercase">★ Est. 2026 · Photographic Parlor ★</p>
+
+      <h1 class="font-display font-black text-5xl sm:text-7xl md:text-8xl mt-5 leading-[0.95] text-ink">
+        Life<br class="sm:hidden"> <span class="italic font-normal">Four</span> Cuts
+      </h1>
+
+      <div class="flex items-center justify-center gap-3 my-6 text-sepia">
+        <span class="block h-px w-16 bg-sepia/60"></span>
+        <span class="font-display text-xl">❦</span>
+        <span class="block h-px w-16 bg-sepia/60"></span>
+      </div>
+
+      <p class="font-display italic text-lg sm:text-2xl text-ink/80 max-w-xl mx-auto">
+        Four frames. One memory.<br class="hidden sm:block"> Step inside, strike a pose, and take home a keepsake.
+      </p>
+
+      <!-- Mini film-strip illustration -->
+      <div class="mx-auto my-8 w-44 sm:w-52 p-3 rounded-sm" style="background:#2b2a28; box-shadow: 0 10px 22px rgba(40,25,10,0.45); transform: rotate(-2deg);">
+        <div class="film-hole-row mb-2"><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i></div>
+        <div class="grid grid-cols-1 gap-2">
+          <div class="h-7 rounded-[2px]" style="background:linear-gradient(135deg,#d8c59a,#b99a6c)"></div>
+          <div class="h-7 rounded-[2px]" style="background:linear-gradient(135deg,#c9b48a,#a98a5c)"></div>
+          <div class="h-7 rounded-[2px]" style="background:linear-gradient(135deg,#e2d1a8,#c2a676)"></div>
+          <div class="h-7 rounded-[2px]" style="background:linear-gradient(135deg,#cdb88c,#ab8d5f)"></div>
+        </div>
+        <div class="film-hole-row mt-2"><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i></div>
+      </div>
+
+      <button id="btn-start" class="plaque font-display font-black tracking-[0.18em] text-xl sm:text-3xl px-8 sm:px-14 py-5 sm:py-6 mx-auto" aria-label="Start photoshoot">
+        START PHOTOSHOOT
+      </button>
+
+      <ol class="font-type text-xs sm:text-sm text-sepia mt-10 grid sm:grid-cols-3 gap-3 text-left max-w-xl mx-auto">
+        <li><span class="font-bold">I.</span> Allow the camera when asked.</li>
+        <li><span class="font-bold">II.</span> Press capture &amp; strike four poses.</li>
+        <li><span class="font-bold">III.</span> Pick a film look &amp; frame, then download.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN 2 : THE DARKROOM ===================== -->
+  <section id="screen-capture" class="screen min-h-screen flex-col items-center justify-center px-4 py-8">
+    <header class="text-center mb-5">
+      <p class="font-type text-xs tracking-[0.35em] uppercase text-sepia">The Darkroom</p>
+      <h2 class="font-display font-black text-3xl sm:text-5xl text-ink mt-1">Strike a Pose</h2>
+    </header>
+
+    <div class="wood w-full max-w-3xl">
+      <div id="lens" class="lens-well w-full" style="aspect-ratio: 340 / 235;">
+        <video id="video" autoplay playsinline muted></video>
+
+        <!-- Brass pose plate -->
+        <div id="poseLabel" class="absolute top-3 left-3 font-type text-xs sm:text-sm px-3 py-1 rounded-sm z-10"
+             style="background: rgba(244,234,208,0.92); color:#3b2f22; border:1px solid #5b4630;">
+          Ready when you are
+        </div>
+
+        <!-- Countdown -->
+        <div id="countdown" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <span id="countNum"></span>
+        </div>
+
+        <div id="flash"></div>
+
+        <!-- Loading overlay -->
+        <div id="camLoading" class="absolute inset-0 z-30 flex items-center justify-center" style="background:#120c07;">
+          <p class="font-type text-[#e9dcb9] tracking-widest text-center px-6">Warming up the lens…<br><span class="text-xs opacity-70">Please allow camera access</span></p>
+        </div>
+
+        <!-- Error overlay -->
+        <div id="camError" class="absolute inset-0 z-40 hidden items-center justify-center p-3 sm:p-6" style="background: rgba(14,10,7,0.93);">
+          <div class="placard max-w-md w-full text-center p-5 sm:p-7 rounded-sm">
+            <p class="font-type text-[10px] sm:text-xs tracking-[0.3em] uppercase text-sepia">Notice to patrons</p>
+            <h3 class="font-display font-black text-2xl sm:text-3xl my-2">Darkroom Out of Order</h3>
+            <div class="h-px bg-sepia/50 my-3"></div>
+            <p id="camErrorMsg" class="font-type text-sm sm:text-base leading-relaxed"></p>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center mt-5">
+              <button id="btn-retry" class="btn-vintage">Try Again</button>
+              <button id="btn-error-back" class="btn-vintage">Back to Parlor</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Film slots -->
+    <div class="w-full max-w-3xl mt-6">
+      <p class="font-type text-xs tracking-[0.25em] uppercase text-sepia text-center mb-2">Exposures</p>
+      <div id="slots" class="grid grid-cols-4 gap-2 sm:gap-4">
+        <div class="slot">I</div><div class="slot">II</div><div class="slot">III</div><div class="slot">IV</div>
+      </div>
+    </div>
+
+    <p id="status" class="font-type text-sm sm:text-base text-sepia mt-5 text-center min-h-[1.5rem]">Press capture to begin. Four photos, three seconds apart.</p>
+
+    <div class="flex flex-col sm:flex-row items-center gap-4 mt-3">
+      <button id="btn-capture" class="plaque font-display font-black tracking-[0.2em] text-lg sm:text-2xl px-10 py-4" disabled>CAPTURE</button>
+      <button id="btn-cancel" class="btn-vintage hidden">Cancel Session</button>
+      <button id="btn-back" class="btn-vintage">← Back to Parlor</button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN 3 : THE GALLERY ===================== -->
+  <section id="screen-gallery" class="screen min-h-screen flex-col items-center px-4 py-8 sm:py-12">
+    <header class="text-center mb-8">
+      <p class="font-type text-xs tracking-[0.35em] uppercase text-sepia">The Gallery</p>
+      <h2 class="font-display font-black text-3xl sm:text-5xl text-ink mt-1">Your Keepsake</h2>
+      <p class="font-display italic text-ink/70 mt-2">Freshly developed &amp; ready for the album.</p>
+    </header>
+
+    <div class="w-full max-w-5xl flex flex-col lg:flex-row items-center lg:items-start justify-center gap-10 lg:gap-14">
+
+      <!-- Strip -->
+      <div class="relative w-full max-w-[340px] shrink-0 pt-3">
+        <span class="tape" style="top:-2px; left:50%; margin-left:-45px; transform: rotate(3deg);"></span>
+        <div class="paper p-3 sm:p-4 strip-holder">
+          <canvas id="strip" width="400" height="1200" aria-label="Assembled photostrip"></canvas>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="paper-aged double-rule w-full max-w-md p-6 sm:p-8">
+        <h3 class="font-display font-bold text-2xl text-ink">The Finishing Desk</h3>
+        <div class="h-px bg-sepia/50 my-3"></div>
+
+        <p class="font-type text-xs tracking-[0.25em] uppercase text-sepia mb-2">Film Stock</p>
+        <div id="filterGroup" class="grid grid-cols-1 gap-2 mb-6">
+          <button class="btn-vintage text-left is-active" data-filter="warmth">1970s Warmth</button>
+          <button class="btn-vintage text-left" data-filter="bw">Silver Halide B&amp;W</button>
+          <button class="btn-vintage text-left" data-filter="cyano">Faded Cyanotype</button>
+          <button class="btn-vintage text-left" data-filter="raw">Raw Film Stock</button>
+        </div>
+
+        <p class="font-type text-xs tracking-[0.25em] uppercase text-sepia mb-2">Border Stock</p>
+        <div id="frameGroup" class="grid grid-cols-1 gap-2 mb-7">
+          <button class="btn-vintage text-left is-active" data-frame="cream"><span class="swatch" style="background:#f1e6cc"></span>Antique Cream</button>
+          <button class="btn-vintage text-left" data-frame="charcoal"><span class="swatch" style="background:#2a2926"></span>Matte Charcoal</button>
+          <button class="btn-vintage text-left" data-frame="sepia"><span class="swatch" style="background:#bf9f74"></span>Faded Sepia</button>
+        </div>
+
+        <button id="btn-download" class="plaque w-full font-display font-black tracking-[0.15em] text-lg sm:text-xl py-4 px-4">
+          DOWNLOAD PHOTOSTRIP
+        </button>
+
+        <div class="grid grid-cols-2 gap-3 mt-5">
+          <button id="btn-retake" class="btn-vintage text-center">↺ Retake</button>
+          <button id="btn-home" class="btn-vintage text-center">⌂ Parlor</button>
+        </div>
+
+        <p class="font-type text-[11px] text-sepia/80 mt-5 leading-relaxed text-center">
+          Prints as a 400 × 1200 px PNG.<br>Photos stay on your device — nothing is uploaded.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+     CONSTANTS
+  ------------------------------------------------------------------ */
+  var STRIP_W = 400, STRIP_H = 1200;
+  var MARGIN = 30, GAP = 20, FOOTER_H = 170;
+  var CELL_W = STRIP_W - MARGIN * 2;                                  // 340
+  var CELL_H = (STRIP_H - MARGIN - FOOTER_H - GAP * 3) / 4;           // 235
+  var ASPECT = CELL_W / CELL_H;
+  var SHOT_COUNT = 4;
+  var COUNT_SECONDS = 3;
+
+  var FILTERS = {
+    warmth: {
+      css: 'sepia(0.25) contrast(0.95) brightness(1.05) saturate(1.1)',
+      ops: [['sepia', 0.25], ['contrast', 0.95], ['brightness', 1.05], ['saturate', 1.1]]
+    },
+    bw: {
+      css: 'grayscale(1) contrast(1.2) brightness(0.98)',
+      ops: [['grayscale', 1], ['contrast', 1.2], ['brightness', 0.98]]
+    },
+    cyano: {
+      css: 'hue-rotate(180deg) saturate(0.6) brightness(1.02) contrast(0.95)',
+      ops: [['hue-rotate', 180], ['saturate', 0.6], ['brightness', 1.02], ['contrast', 0.95]]
+    },
+    raw: { css: 'none', ops: [] }
+  };
+
+  var FRAMES = {
+    cream:    { bg: '#f1e6cc', ink: '#3b2f22', edge: '#cdbb90', rule: 'rgba(59,47,34,0.55)' },
+    charcoal: { bg: '#2a2926', ink: '#e8dec7', edge: '#4b4944', rule: 'rgba(232,222,199,0.55)' },
+    sepia:    { bg: '#bf9f74', ink: '#3a2614', edge: '#8f7249', rule: 'rgba(58,38,20,0.55)' }
+  };
+
+  /* ------------------------------------------------------------------
+     STATE
+  ------------------------------------------------------------------ */
+  var state = {
+    screen: 'idle',
+    stream: null,
+    shots: [],          // Base64 data URLs
+    images: [],         // decoded Image objects for the gallery
+    filter: 'warmth',
+    frame: 'cream',
+    running: false,
+    abort: false,
+    renderToken: 0,
+    renderPromise: Promise.resolve(),
+    cameraReady: false
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var video = $('video'), strip = $('strip');
+  var audioCtx = null;
+
+  var SUPPORTS_CTX_FILTER = (function () {
+    try { return 'filter' in document.createElement('canvas').getContext('2d'); } catch (e) { return false; }
+  })();
+
+  /* ------------------------------------------------------------------
+     HELPERS
+  ------------------------------------------------------------------ */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(function () { t.classList.remove('show'); }, 2800);
+  }
+
+  function setStatus(msg) { $('status').textContent = msg; }
+
+  function go(name) {
+    state.screen = name;
+    ['idle', 'capture', 'gallery'].forEach(function (n) {
+      $('screen-' + n).classList.toggle('active', n === name);
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function shutterClick() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!audioCtx) audioCtx = new AC();
+      var len = Math.floor(audioCtx.sampleRate * 0.12);
+      var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      }
+      var src = audioCtx.createBufferSource();
+      var gain = audioCtx.createGain();
+      gain.gain.value = 0.35;
+      src.buffer = buf;
+      src.connect(gain);
+      gain.connect(audioCtx.destination);
+      src.start();
+    } catch (e) { /* sound is optional */ }
+  }
+
+  /* ------------------------------------------------------------------
+     CAMERA
+  ------------------------------------------------------------------ */
+  function showCamError(msg) {
+    $('camLoading').style.display = 'none';
+    $('camErrorMsg').textContent = msg;
+    var el = $('camError');
+    el.classList.remove('hidden');
+    el.style.display = 'flex';
+    $('btn-capture').disabled = true;
+    setStatus('The camera is unavailable.');
+  }
+
+  function hideCamError() {
+    var el = $('camError');
+    el.classList.add('hidden');
+    el.style.display = 'none';
+  }
+
+  function describeCamError(err) {
+    var name = err && err.name ? err.name : '';
+    if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') {
+      return 'Camera access was declined. Please allow the camera in your browser\u2019s address bar (look for the camera icon), then press \u201CTry Again\u201D.';
+    }
+    if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || name === 'OverconstrainedError') {
+      return 'We couldn\u2019t find a camera on this device. Please connect a webcam and press \u201CTry Again\u201D.';
+    }
+    if (name === 'NotReadableError' || name === 'TrackStartError' || name === 'AbortError') {
+      return 'The camera seems to be busy with another application. Close other apps using it, then press \u201CTry Again\u201D.';
+    }
+    return 'Something went wrong while opening the camera' + (name ? ' (' + name + ')' : '') + '. Please try again.';
+  }
+
+  async function startCamera() {
+    stopCamera();
+    state.cameraReady = false;
+    hideCamError();
+    $('camLoading').style.display = 'flex';
+    $('btn-capture').disabled = true;
+    setStatus('Warming up the lens\u2026');
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showCamError('This browser can\u2019t reach the camera. Camera access needs a modern browser and a secure (https) connection or a local file.');
+      return;
+    }
+
+    var stream = null;
+    try {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } },
+          audio: false
+        });
+      } catch (firstErr) {
+        if (firstErr && firstErr.name === 'OverconstrainedError') {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        } else {
+          throw firstErr;
+        }
+      }
+    } catch (err) {
+      showCamError(describeCamError(err));
+      return;
+    }
+
+    // The user may have navigated away while the permission prompt was open
+    if (state.screen !== 'capture') {
+      stream.getTracks().forEach(function (t) { t.stop(); });
+      return;
+    }
+
+    state.stream = stream;
+    video.srcObject = stream;
+    try {
+      await video.play();
+    } catch (e) { /* autoplay will start once metadata loads */ }
+
+    if (!video.videoWidth) {
+      await new Promise(function (resolve) {
+        var done = false;
+        function fin() { if (!done) { done = true; resolve(); } }
+        video.addEventListener('loadedmetadata', fin, { once: true });
+        setTimeout(fin, 4000);
+      });
+    }
+
+    if (!video.videoWidth) {
+      showCamError('The camera started but isn\u2019t sending a picture. Please press \u201CTry Again\u201D.');
+      return;
+    }
+
+    state.cameraReady = true;
+    $('camLoading').style.display = 'none';
+    $('btn-capture').disabled = false;
+    $('poseLabel').textContent = 'Ready when you are';
+    setStatus('Press capture to begin. Four photos, three seconds apart.');
+  }
+
+  function stopCamera() {
+    if (state.stream) {
+      state.stream.getTracks().forEach(function (t) { t.stop(); });
+      state.stream = null;
+    }
+    try { video.srcObject = null; } catch (e) {}
+    state.cameraReady = false;
+  }
+
+  /* ------------------------------------------------------------------
+     CAPTURE LOOP
+  ------------------------------------------------------------------ */
+  function resetSlots() {
+    var romans = ['I', 'II', 'III', 'IV'];
+    $('slots').innerHTML = '';
+    romans.forEach(function (r) {
+      var d = document.createElement('div');
+      d.className = 'slot';
+      d.textContent = r;
+      $('slots').appendChild(d);
+    });
+  }
+
+  function fillSlot(i, dataUrl) {
+    var slot = $('slots').children[i];
+    if (!slot) return;
+    slot.textContent = '';
+    var img = document.createElement('img');
+    img.alt = 'Exposure ' + (i + 1);
+    img.src = dataUrl;
+    slot.appendChild(img);
+  }
+
+  function grabFrame() {
+    var vw = video.videoWidth, vh = video.videoHeight;
+    var sw, sh, sx, sy;
+    if (vw / vh > ASPECT) { sh = vh; sw = vh * ASPECT; sx = (vw - sw) / 2; sy = 0; }
+    else { sw = vw; sh = vw / ASPECT; sx = 0; sy = (vh - sh) / 2; }
+
+    var outW = Math.min(Math.round(sw), 1200);
+    var outH = Math.round(outW / ASPECT);
+    var c = document.createElement('canvas');
+    c.width = outW; c.height = outH;
+    var ctx = c.getContext('2d');
+    ctx.translate(outW, 0);          // mirror, matching the preview
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, outW, outH);
+    return c.toDataURL('image/jpeg', 0.92);
+  }
+
+  function showCount(n) {
+    var el = $('countNum');
+    el.classList.remove('pop');
+    void el.offsetWidth;            // restart animation
+    el.textContent = String(n);
+    el.classList.add('pop');
+  }
+  function clearCount() {
+    var el = $('countNum');
+    el.classList.remove('pop');
+    el.textContent = '';
+  }
+
+  async function fireFlash() {
+    var f = $('flash');
+    f.classList.remove('fade');
+    f.classList.add('fire');
+    shutterClick();
+    var data = grabFrame();
+    await sleep(80);
+    f.classList.remove('fire');
+    void f.offsetWidth;
+    f.classList.add('fade');
+    setTimeout(function () { f.classList.remove('fade'); }, 700);
+    return data;
+  }
+
+  function endSequenceUI() {
+    state.running = false;
+    $('btn-cancel').classList.add('hidden');
+    $('btn-back').classList.remove('hidden');
+    $('btn-capture').classList.remove('hidden');
+    $('btn-capture').disabled = !state.cameraReady;
+    clearCount();
+  }
+
+  async function runSequence() {
+    if (state.running || !state.cameraReady) return;
+    state.running = true;
+    state.abort = false;
+    state.shots = [];
+    resetSlots();
+
+    $('btn-capture').classList.add('hidden');
+    $('btn-back').classList.add('hidden');
+    $('btn-cancel').classList.remove('hidden');
+
+    for (var i = 0; i < SHOT_COUNT; i++) {
+      $('poseLabel').textContent = 'Pose ' + (i + 1) + ' of ' + SHOT_COUNT;
+      setStatus(i === 0 ? 'Get ready\u2026 here we go!' : 'Hold your pose \u2014 next one is coming up!');
+
+      for (var n = COUNT_SECONDS; n >= 1; n--) {
+        if (state.abort) { endSequenceUI(); return; }
+        showCount(n);
+        await sleep(1000);
+      }
+      if (state.abort) { endSequenceUI(); return; }
+      clearCount();
+
+      var data = await fireFlash();
+      state.shots.push(data);
+      fillSlot(i, data);
+      await sleep(600);
+    }
+
+    clearCount();
+    setStatus('Developing your photographs\u2026');
+    $('poseLabel').textContent = 'Developing\u2026';
+    await sleep(900);
+    if (state.abort) { endSequenceUI(); return; }
+
+    state.running = false;
+    stopCamera();
+    endSequenceUI();
+    await enterGallery();
+  }
+
+  /* ------------------------------------------------------------------
+     FILTER ENGINE (ctx.filter with pixel-math fallback for Safari)
+  ------------------------------------------------------------------ */
+  function mat3(d, m) {
+    for (var i = 0; i < d.length; i += 4) {
+      var r = d[i], g = d[i + 1], b = d[i + 2];
+      d[i]     = m[0] * r + m[1] * g + m[2] * b;
+      d[i + 1] = m[3] * r + m[4] * g + m[5] * b;
+      d[i + 2] = m[6] * r + m[7] * g + m[8] * b;
+    }
+  }
+
+  function applyOps(imgData, ops) {
+    var d = imgData.data;
+    ops.forEach(function (op) {
+      var name = op[0], v = op[1], s;
+      if (name === 'sepia') {
+        s = 1 - v;
+        mat3(d, [0.393 + 0.607 * s, 0.769 - 0.769 * s, 0.189 - 0.189 * s,
+                 0.349 - 0.349 * s, 0.686 + 0.314 * s, 0.168 - 0.168 * s,
+                 0.272 - 0.272 * s, 0.534 - 0.534 * s, 0.131 + 0.869 * s]);
+      } else if (name === 'grayscale') {
+        s = 1 - v;
+        mat3(d, [0.2126 + 0.7874 * s, 0.7152 - 0.7152 * s, 0.0722 - 0.0722 * s,
+                 0.2126 - 0.2126 * s, 0.7152 + 0.2848 * s, 0.0722 - 0.0722 * s,
+                 0.2126 - 0.2126 * s, 0.7152 - 0.7152 * s, 0.0722 + 0.9278 * s]);
+      } else if (name === 'saturate') {
+        s = v;
+        mat3(d, [0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s,
+                 0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s,
+                 0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s]);
+      } else if (name === 'hue-rotate') {
+        var a = v * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a);
+        mat3(d, [0.213 + c * 0.787 - sn * 0.213, 0.715 - c * 0.715 - sn * 0.715, 0.072 - c * 0.072 + sn * 0.928,
+                 0.213 - c * 0.213 + sn * 0.143, 0.715 + c * 0.285 + sn * 0.140, 0.072 - c * 0.072 - sn * 0.283,
+                 0.213 - c * 0.213 - sn * 0.787, 0.715 - c * 0.715 + sn * 0.715, 0.072 + c * 0.928 + sn * 0.072]);
+      } else if (name === 'brightness') {
+        for (var i = 0; i < d.length; i += 4) {
+          d[i] *= v; d[i + 1] *= v; d[i + 2] *= v;
+        }
+      } else if (name === 'contrast') {
+        var k = (-0.5 * v + 0.5) * 255;
+        for (var j = 0; j < d.length; j += 4) {
+          d[j] = d[j] * v + k; d[j + 1] = d[j + 1] * v + k; d[j + 2] = d[j + 2] * v + k;
+        }
+      }
+    });
+  }
+
+  function drawCover(ctx, img, x, y, w, h) {
+    var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    var scale = Math.max(w / iw, h / ih);
+    var sw = w / scale, sh = h / scale;
+    ctx.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, x, y, w, h);
+  }
+
+  function filteredCell(img, filterKey) {
+    var f = FILTERS[filterKey];
+    var tmp = document.createElement('canvas');
+    tmp.width = CELL_W; tmp.height = CELL_H;
+    var t = tmp.getContext('2d');
+    if (SUPPORTS_CTX_FILTER) {
+      t.filter = f.css;
+      drawCover(t, img, 0, 0, CELL_W, CELL_H);
+      t.filter = 'none';
+    } else {
+      drawCover(t, img, 0, 0, CELL_W, CELL_H);
+      if (f.ops.length) {
+        var id = t.getImageData(0, 0, CELL_W, CELL_H);
+        applyOps(id, f.ops);
+        t.putImageData(id, 0, 0);
+      }
+    }
+    return tmp;
+  }
+
+  /* ------------------------------------------------------------------
+     VINTAGE CANVAS COMPILER
+  ------------------------------------------------------------------ */
+  var noiseTile = null;
+  function getNoiseTile() {
+    if (noiseTile) return noiseTile;
+    var c = document.createElement('canvas');
+    c.width = 160; c.height = 160;
+    var x = c.getContext('2d');
+    var id = x.createImageData(160, 160);
+    for (var i = 0; i < id.data.length; i += 4) {
+      var v = Math.random() * 255;
+      id.data[i] = v; id.data[i + 1] = v * 0.92; id.data[i + 2] = v * 0.8;
+      id.data[i + 3] = 13 + Math.random() * 14;
+    }
+    x.putImageData(id, 0, 0);
+    noiseTile = c;
+    return c;
+  }
+
+  function dateStamp() {
+    var d = new Date();
+    var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  async function ensureFonts() {
+    try {
+      if (document.fonts && document.fonts.load) {
+        await Promise.race([
+          Promise.all([
+            document.fonts.load('900 44px "Playfair Display"'),
+            document.fonts.load('700 44px "Playfair Display"'),
+            document.fonts.load('20px "Special Elite"')
+          ]),
+          sleep(2500)
+        ]);
+      }
+    } catch (e) { /* fall back to system serif / mono */ }
+  }
+
+  function setLetterSpacing(ctx, px) {
+    if ('letterSpacing' in ctx) ctx.letterSpacing = px + 'px';
+  }
+
+  async function renderStrip() {
+    var token = ++state.renderToken;
+    await ensureFonts();
+    if (token !== state.renderToken) return;
+
+    var ctx = strip.getContext('2d');
+    var fr = FRAMES[state.frame];
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, STRIP_W, STRIP_H);
+
+    // Card stock
+    ctx.fillStyle = fr.bg;
+    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
+
+    // Subtle paper sheen
+    var sheen = ctx.createLinearGradient(0, 0, STRIP_W, STRIP_H);
+    sheen.addColorStop(0, 'rgba(255,255,255,0.10)');
+    sheen.addColorStop(0.5, 'rgba(255,255,255,0)');
+    sheen.addColorStop(1, 'rgba(0,0,0,0.08)');
+    ctx.fillStyle = sheen;
+    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
+
+    // Photos
+    for (var i = 0; i < SHOT_COUNT; i++) {
+      var x = MARGIN, y = MARGIN + i * (CELL_H + GAP);
+      var img = state.images[i];
+
+      // soft drop shadow
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 7;
+      ctx.shadowOffsetY = 2;
+      ctx.fillStyle = '#1c1611';
+      ctx.fillRect(x, y, CELL_W, CELL_H);
+      ctx.restore();
+
+      if (img) {
+        ctx.drawImage(filteredCell(img, state.filter), x, y);
+      }
+
+      // inner edge and keyline
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = fr.edge;
+      ctx.strokeRect(x + 1, y + 1, CELL_W - 2, CELL_H - 2);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+      ctx.strokeRect(x - 0.5, y - 0.5, CELL_W + 1, CELL_H + 1);
+    }
+
+    // Footer
+    var fy = MARGIN + 4 * CELL_H + 3 * GAP;          // 1030
+    var cx = STRIP_W / 2;
+
+    ctx.strokeStyle = fr.rule;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(MARGIN, fy + 24); ctx.lineTo(STRIP_W - MARGIN, fy + 24); ctx.stroke();
+    ctx.lineWidth = 0.75;
+    ctx.beginPath(); ctx.moveTo(MARGIN, fy + 29); ctx.lineTo(STRIP_W - MARGIN, fy + 29); ctx.stroke();
+
+    ctx.fillStyle = fr.ink;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+
+    ctx.font = '900 44px "Playfair Display", Georgia, serif';
+    setLetterSpacing(ctx, 4);
+    ctx.fillText('LIFE 4 CUTS', cx, fy + 78);
+
+    // diamond ornament
+    ctx.save();
+    ctx.translate(cx, fy + 96);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = fr.ink;
+    ctx.fillRect(-3, -3, 6, 6);
+    ctx.restore();
+    ctx.strokeStyle = fr.rule;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx - 70, fy + 96); ctx.lineTo(cx - 12, fy + 96); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx + 12, fy + 96); ctx.lineTo(cx + 70, fy + 96); ctx.stroke();
+
+    ctx.fillStyle = fr.ink;
+    ctx.font = '22px "Special Elite", "Courier Prime", "Courier New", monospace';
+    setLetterSpacing(ctx, 3);
+    ctx.fillText(dateStamp(), cx, fy + 128);
+
+    setLetterSpacing(ctx, 0);
+
+    // Film grain
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = ctx.createPattern(getNoiseTile(), 'repeat');
+    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
+    ctx.restore();
+
+    // Edge aging
+    var vg = ctx.createRadialGradient(cx, STRIP_H / 2, STRIP_H * 0.25, cx, STRIP_H / 2, STRIP_H * 0.75);
+    vg.addColorStop(0, 'rgba(90,60,20,0)');
+    vg.addColorStop(1, 'rgba(90,60,20,0.14)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
+  }
+
+  function queueRender() {
+    state.renderPromise = renderStrip();
+    return state.renderPromise;
+  }
+
+  function loadImage(src) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  async function enterGallery() {
+    try {
+      state.images = await Promise.all(state.shots.map(loadImage));
+    } catch (e) {
+      toast('Could not read the captured photos. Please retake.');
+      return;
+    }
+    go('gallery');
+    await queueRender();
+  }
+
+  /* ------------------------------------------------------------------
+     EXPORT
+  ------------------------------------------------------------------ */
+  async function downloadStrip() {
+    try { await state.renderPromise; } catch (e) {}
+    var url;
+    try {
+      url = strip.toDataURL('image/png');
+    } catch (e) {
+      toast('Sorry, the photostrip could not be exported.');
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'vintage_life4cuts_strip.png';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast('Your photostrip has been saved \u2726');
+  }
+
+  /* ------------------------------------------------------------------
+     NAVIGATION & EVENTS
+  ------------------------------------------------------------------ */
+  function openDarkroom() {
+    state.shots = [];
+    state.images = [];
+    resetSlots();
+    go('capture');
+    startCamera();
+  }
+
+  function leaveToParlor() {
+    state.abort = true;
+    stopCamera();
+    go('idle');
+  }
+
+  $('btn-start').addEventListener('click', function () {
+    // unlock audio on first gesture
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC && !audioCtx) audioCtx = new AC();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) {}
+    openDarkroom();
+  });
+
+  $('btn-capture').addEventListener('click', runSequence);
+  $('btn-cancel').addEventListener('click', function () {
+    state.abort = true;
+    setStatus('Session cancelled. Press capture to try again.');
+    $('poseLabel').textContent = 'Ready when you are';
+  });
+  $('btn-back').addEventListener('click', leaveToParlor);
+  $('btn-error-back').addEventListener('click', leaveToParlor);
+  $('btn-retry').addEventListener('click', startCamera);
+
+  $('btn-retake').addEventListener('click', openDarkroom);
+  $('btn-home').addEventListener('click', function () { go('idle'); });
+  $('btn-download').addEventListener('click', downloadStrip);
+
+  $('filterGroup').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-filter]');
+    if (!b) return;
+    state.filter = b.getAttribute('data-filter');
+    Array.prototype.forEach.call($('filterGroup').children, function (c) {
+      c.classList.toggle('is-active', c === b);
+    });
+    queueRender();
+  });
+
+  $('frameGroup').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-frame]');
+    if (!b) return;
+    state.frame = b.getAttribute('data-frame');
+    Array.prototype.forEach.call($('frameGroup').children, function (c) {
+      c.classList.toggle('is-active', c === b);
+    });
+    queueRender();
+  });
+
+  window.addEventListener('pagehide', stopCamera);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && state.screen === 'capture' && !state.running) {
+      stopCamera();
+      $('btn-capture').disabled = true;
+    } else if (!document.hidden && state.screen === 'capture' && !state.running && !state.stream) {
+      startCamera();
+    }
+  });
+
+  // Paint a blank placeholder strip so the canvas is never empty
+  queueRender();
+})();
+</script>
+</body>
+</html>
