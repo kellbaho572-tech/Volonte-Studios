@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Studio Volonté — Vintage Photobooth</title>
+<title>Volonté — Vintage Photobooth</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,12 +44,16 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Global soft film grain */
+  /* Global soft film grain (follows the Film Grain setting) */
   .grain {
     position: fixed; inset: 0; z-index: 60; pointer-events: none;
-    opacity: 0.32; mix-blend-mode: multiply;
+    opacity: 0.32; mix-blend-mode: multiply; transition: opacity .35s ease;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.27  0 0 0 0 0.17  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   }
+  body[data-grain="none"] .grain { opacity: 0; }
+  body[data-grain="classic"] .grain { opacity: 0.4; }
+  body[data-grain="heavy"] .grain { opacity: 0.7; }
+
   .vignette {
     position: fixed; inset: 0; z-index: 59; pointer-events: none;
     background: radial-gradient(ellipse at center, transparent 55%, rgba(80,50,20,0.22) 100%);
@@ -147,8 +150,9 @@
     box-shadow: inset 0 2px 5px rgba(0,0,0,0.55), 0 1px 0 #fff8e0;
     transform: translateY(1px);
   }
-  .btn-vintage:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-vintage:disabled { opacity: .45; cursor: not-allowed; }
   .btn-vintage:focus-visible, .plaque:focus-visible { outline: 3px solid #b98f46; outline-offset: 3px; }
+  .btn-sm { padding: .5rem .5rem !important; font-size: .78rem; letter-spacing: .05em; }
 
   /* Aged wooden frame */
   .wood {
@@ -206,8 +210,9 @@
   }
 
   /* Photostrip display */
-  .strip-holder { transform: rotate(-1.2deg); }
-  .strip-holder canvas { display: block; width: 100%; height: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.35), 0 18px 34px rgba(50,30,10,0.45); }
+  .strip-holder canvas { display: block; width: 100%; height: auto; }
+  #strip { box-shadow: 0 2px 4px rgba(0,0,0,0.35), 0 18px 34px rgba(50,30,10,0.45); }
+  #sel { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
   .tape {
     position: absolute; width: 90px; height: 26px; background: rgba(226,204,150,0.78);
     box-shadow: 0 1px 2px rgba(0,0,0,0.25); z-index: 5;
@@ -215,17 +220,23 @@
   }
 
   .swatch { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #3b2f22; vertical-align: -3px; margin-right: 8px; }
+  .swatch-top { display: block; margin: 0 auto 4px; }
 
   .toast {
     position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 30px); opacity: 0; z-index: 80;
     background: #2b2a28; color: #f1e6cc; padding: .7rem 1.2rem; border-radius: 3px;
     font-family: "Special Elite", monospace; letter-spacing: .05em; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    transition: all .35s ease; pointer-events: none;
+    transition: all .35s ease; pointer-events: none; text-align: center;
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
   .film-hole-row { display: flex; gap: 10px; justify-content: space-between; padding: 0 6px; }
   .film-hole { width: 14px; height: 9px; background: #f4f1ea; border-radius: 2px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
+
+  .sticker-btn { padding: .3rem !important; display: flex; align-items: center; justify-content: center; }
+  .sticker-btn canvas { width: 40px; height: 40px; display: block; }
+
+  .section-label { font-size: .72rem; letter-spacing: .25em; text-transform: uppercase; color: #5b4630; margin-bottom: .5rem; }
 
   @media (prefers-reduced-motion: reduce) {
     .screen.active, .slot img, #countNum.pop { animation: none; }
@@ -233,7 +244,7 @@
 </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen" data-grain="classic">
 <div class="grain"></div>
 <div class="vignette"></div>
 
@@ -242,10 +253,10 @@
   <!-- ===================== SCREEN 1 : THE PARLOR ===================== -->
   <section id="screen-idle" class="screen active min-h-screen flex-col items-center justify-center px-4 py-10">
     <div class="paper-aged double-rule w-full max-w-3xl px-6 py-10 sm:px-12 sm:py-14 text-center relative">
-      <p class="font-type text-xs sm:text-sm tracking-[0.35em] text-sepia uppercase">★ Est. 2026 · Volonté ★</p>
+      <p class="font-type text-xs sm:text-sm tracking-[0.35em] text-sepia uppercase">★ Maison de Photographie · Est. 2026 ★</p>
 
       <h1 class="font-display font-black text-5xl sm:text-7xl md:text-8xl mt-5 leading-[0.95] text-ink">
-        Volonté <br class="sm:hidden"> <span class="italic font-normal">Film</span> Booth
+        Volon<span class="italic font-normal">té</span>
       </h1>
 
       <div class="flex items-center justify-center gap-3 my-6 text-sepia">
@@ -255,8 +266,19 @@
       </div>
 
       <p class="font-display italic text-lg sm:text-2xl text-ink/80 max-w-xl mx-auto">
-        Four frames. One memory.<br class="hidden sm:block"> Our determination is what drives us to achieve something, even if it seems impossible.
+        Your will, your frames. Two, four or six poses<br class="hidden sm:block"> &mdash; struck entirely as you wish.
       </p>
+
+      <!-- Dictionary entry -->
+      <div class="max-w-md mx-auto mt-6 px-5 py-4 text-left" style="border:1px dashed rgba(91,70,48,0.6); background: rgba(255,250,235,0.45);">
+        <p class="font-display font-bold text-xl text-ink">volonté <span class="font-type font-normal text-sm text-sepia">/vɔ.lɔ̃.te/ &middot; n.f.</span></p>
+        <p class="font-type text-sm text-ink/90 mt-1 leading-relaxed">
+          1. will; willpower; the power to choose and to want.<br>
+          2. a wish, a desire; what one intends.<br>
+          <i>à volonté</i> &mdash; at will; as much as you like.
+        </p>
+        <p class="font-type text-[11px] text-sepia/80 mt-2">From Latin <i>voluntas</i> &ldquo;will&rdquo;, from <i>velle</i> &ldquo;to wish&rdquo;.</p>
+      </div>
 
       <!-- Mini film-strip illustration -->
       <div class="mx-auto my-8 w-44 sm:w-52 p-3 rounded-sm" style="background:#2b2a28; box-shadow: 0 10px 22px rgba(40,25,10,0.45); transform: rotate(-2deg);">
@@ -270,14 +292,24 @@
         <div class="film-hole-row mt-2"><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i><i class="film-hole"></i></div>
       </div>
 
+      <!-- Strip type picker -->
+      <div class="mb-8">
+        <p class="section-label">Choose your strip</p>
+        <div class="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+          <button class="btn-vintage" data-count="2">2 Cuts</button>
+          <button class="btn-vintage is-active" data-count="4">4 Cuts</button>
+          <button class="btn-vintage" data-count="6">6 Cuts</button>
+        </div>
+      </div>
+
       <button id="btn-start" class="plaque font-display font-black tracking-[0.18em] text-xl sm:text-3xl px-8 sm:px-14 py-5 sm:py-6 mx-auto" aria-label="Start photoshoot">
         START PHOTOSHOOT
       </button>
 
       <ol class="font-type text-xs sm:text-sm text-sepia mt-10 grid sm:grid-cols-3 gap-3 text-left max-w-xl mx-auto">
         <li><span class="font-bold">I.</span> Allow the camera when asked.</li>
-        <li><span class="font-bold">II.</span> Press capture &amp; strike four poses.</li>
-        <li><span class="font-bold">III.</span> Pick a film look &amp; frame, then download.</li>
+        <li><span class="font-bold">II.</span> Press capture &amp; strike your poses.</li>
+        <li><span class="font-bold">III.</span> Add stickers, pick a look, then download.</li>
       </ol>
     </div>
   </section>
@@ -286,32 +318,28 @@
   <section id="screen-capture" class="screen min-h-screen flex-col items-center justify-center px-4 py-8">
     <header class="text-center mb-5">
       <p class="font-type text-xs tracking-[0.35em] uppercase text-sepia">The Darkroom</p>
-      <h2 class="font-display font-black text-3xl sm:text-5xl text-ink mt-1">Strike a Pose</h2>
+      <h2 class="font-display font-black text-3xl sm:text-5xl text-ink mt-1">As You Wish</h2>
     </header>
 
     <div class="wood w-full max-w-3xl">
       <div id="lens" class="lens-well w-full" style="aspect-ratio: 340 / 235;">
         <video id="video" autoplay playsinline muted></video>
 
-        <!-- Brass pose plate -->
         <div id="poseLabel" class="absolute top-3 left-3 font-type text-xs sm:text-sm px-3 py-1 rounded-sm z-10"
              style="background: rgba(244,234,208,0.92); color:#3b2f22; border:1px solid #5b4630;">
           Ready when you are
         </div>
 
-        <!-- Countdown -->
         <div id="countdown" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <span id="countNum"></span>
         </div>
 
         <div id="flash"></div>
 
-        <!-- Loading overlay -->
         <div id="camLoading" class="absolute inset-0 z-30 flex items-center justify-center" style="background:#120c07;">
           <p class="font-type text-[#e9dcb9] tracking-widest text-center px-6">Warming up the lens…<br><span class="text-xs opacity-70">Please allow camera access</span></p>
         </div>
 
-        <!-- Error overlay -->
         <div id="camError" class="absolute inset-0 z-40 hidden items-center justify-center p-3 sm:p-6" style="background: rgba(14,10,7,0.93);">
           <div class="placard max-w-md w-full text-center p-5 sm:p-7 rounded-sm">
             <p class="font-type text-[10px] sm:text-xs tracking-[0.3em] uppercase text-sepia">Notice to patrons</p>
@@ -330,14 +358,22 @@
     <!-- Film slots -->
     <div class="w-full max-w-3xl mt-6">
       <p class="font-type text-xs tracking-[0.25em] uppercase text-sepia text-center mb-2">Exposures</p>
-      <div id="slots" class="grid grid-cols-4 gap-2 sm:gap-4">
-        <div class="slot">I</div><div class="slot">II</div><div class="slot">III</div><div class="slot">IV</div>
+      <div id="slots" class="grid gap-2 sm:gap-4"></div>
+    </div>
+
+    <p id="status" class="font-type text-sm sm:text-base text-sepia mt-5 text-center min-h-[1.5rem]"></p>
+
+    <!-- Strip type picker (hidden while shooting) -->
+    <div id="countPickerCapture" class="mt-3 text-center">
+      <p class="section-label">Strip type</p>
+      <div class="grid grid-cols-3 gap-2 w-64 mx-auto">
+        <button class="btn-vintage btn-sm" data-count="2">2 Cuts</button>
+        <button class="btn-vintage btn-sm is-active" data-count="4">4 Cuts</button>
+        <button class="btn-vintage btn-sm" data-count="6">6 Cuts</button>
       </div>
     </div>
 
-    <p id="status" class="font-type text-sm sm:text-base text-sepia mt-5 text-center min-h-[1.5rem]">Press capture to begin. Four photos, three seconds apart.</p>
-
-    <div class="flex flex-col sm:flex-row items-center gap-4 mt-3">
+    <div class="flex flex-col sm:flex-row items-center gap-4 mt-5">
       <button id="btn-capture" class="plaque font-display font-black tracking-[0.2em] text-lg sm:text-2xl px-10 py-4" disabled>CAPTURE</button>
       <button id="btn-cancel" class="btn-vintage hidden">Cancel Session</button>
       <button id="btn-back" class="btn-vintage">← Back to Parlor</button>
@@ -349,7 +385,7 @@
     <header class="text-center mb-8">
       <p class="font-type text-xs tracking-[0.35em] uppercase text-sepia">The Gallery</p>
       <h2 class="font-display font-black text-3xl sm:text-5xl text-ink mt-1">Your Keepsake</h2>
-      <p class="font-display italic text-ink/70 mt-2">Freshly developed &amp; ready for the album.</p>
+      <p class="font-display italic text-ink/70 mt-2">Developed &agrave; volont&eacute; &mdash; exactly as you willed it.</p>
     </header>
 
     <div class="w-full max-w-5xl flex flex-col lg:flex-row items-center lg:items-start justify-center gap-10 lg:gap-14">
@@ -358,7 +394,10 @@
       <div class="relative w-full max-w-[340px] shrink-0 pt-3">
         <span class="tape" style="top:-2px; left:50%; margin-left:-45px; transform: rotate(3deg);"></span>
         <div class="paper p-3 sm:p-4 strip-holder">
-          <canvas id="strip" width="400" height="1200" aria-label="Assembled photostrip"></canvas>
+          <div class="relative">
+            <canvas id="strip" width="400" height="1200" aria-label="Assembled photostrip"></canvas>
+            <canvas id="sel" width="400" height="1200" aria-label="Sticker layer"></canvas>
+          </div>
         </div>
       </div>
 
@@ -367,19 +406,38 @@
         <h3 class="font-display font-bold text-2xl text-ink">The Finishing Desk</h3>
         <div class="h-px bg-sepia/50 my-3"></div>
 
-        <p class="font-type text-xs tracking-[0.25em] uppercase text-sepia mb-2">Film Stock</p>
-        <div id="filterGroup" class="grid grid-cols-1 gap-2 mb-6">
-          <button class="btn-vintage text-left is-active" data-filter="warmth">1970s Warmth</button>
-          <button class="btn-vintage text-left" data-filter="bw">Silver Halide B&amp;W</button>
-          <button class="btn-vintage text-left" data-filter="cyano">Faded Cyanotype</button>
-          <button class="btn-vintage text-left" data-filter="raw">Raw Film Stock</button>
+        <p class="section-label">Film Stock</p>
+        <div id="filterGroup" class="grid grid-cols-2 gap-2 mb-6">
+          <button class="btn-vintage btn-sm is-active" data-filter="warmth">1970s Warmth</button>
+          <button class="btn-vintage btn-sm" data-filter="bw">Silver Halide B&amp;W</button>
+          <button class="btn-vintage btn-sm" data-filter="cyano">Faded Cyanotype</button>
+          <button class="btn-vintage btn-sm" data-filter="raw">Raw Film Stock</button>
         </div>
 
-        <p class="font-type text-xs tracking-[0.25em] uppercase text-sepia mb-2">Border Stock</p>
-        <div id="frameGroup" class="grid grid-cols-1 gap-2 mb-7">
-          <button class="btn-vintage text-left is-active" data-frame="cream"><span class="swatch" style="background:#f1e6cc"></span>Antique Cream</button>
-          <button class="btn-vintage text-left" data-frame="charcoal"><span class="swatch" style="background:#2a2926"></span>Matte Charcoal</button>
-          <button class="btn-vintage text-left" data-frame="sepia"><span class="swatch" style="background:#bf9f74"></span>Faded Sepia</button>
+        <p class="section-label">Border Stock</p>
+        <div id="frameGroup" class="grid grid-cols-3 gap-2 mb-6">
+          <button class="btn-vintage btn-sm is-active" data-frame="cream"><span class="swatch swatch-top" style="background:#f1e6cc"></span>Antique Cream</button>
+          <button class="btn-vintage btn-sm" data-frame="charcoal"><span class="swatch swatch-top" style="background:#2a2926"></span>Matte Charcoal</button>
+          <button class="btn-vintage btn-sm" data-frame="sepia"><span class="swatch swatch-top" style="background:#bf9f74"></span>Faded Sepia</button>
+        </div>
+
+        <p class="section-label">Film Grain</p>
+        <div id="grainGroup" class="grid grid-cols-3 gap-2 mb-6">
+          <button class="btn-vintage btn-sm" data-grain="none">None</button>
+          <button class="btn-vintage btn-sm is-active" data-grain="classic">Classic</button>
+          <button class="btn-vintage btn-sm" data-grain="heavy">Heavy</button>
+        </div>
+
+        <p class="section-label">Stickers</p>
+        <div id="stickerTray" class="grid grid-cols-6 gap-2 mb-2"></div>
+        <p class="font-type text-[11px] text-sepia/80 mb-3">Tap a sticker to add it, then drag it onto the strip.</p>
+        <div class="grid grid-cols-3 gap-2 mb-6">
+          <button id="st-bigger" class="btn-vintage btn-sm" disabled>Bigger</button>
+          <button id="st-smaller" class="btn-vintage btn-sm" disabled>Smaller</button>
+          <button id="st-rotate" class="btn-vintage btn-sm" disabled>Rotate</button>
+          <button id="st-flip" class="btn-vintage btn-sm" disabled>Flip</button>
+          <button id="st-remove" class="btn-vintage btn-sm" disabled>Remove</button>
+          <button id="st-clear" class="btn-vintage btn-sm" disabled>Clear all</button>
         </div>
 
         <button id="btn-download" class="plaque w-full font-display font-black tracking-[0.15em] text-lg sm:text-xl py-4 px-4">
@@ -392,7 +450,7 @@
         </div>
 
         <p class="font-type text-[11px] text-sepia/80 mt-5 leading-relaxed text-center">
-          Prints as a 400 × 1200 px PNG.<br>Photos stay on your device — nothing is uploaded.
+          Prints as a PNG (400 px wide).<br>Photos stay on your device — nothing is uploaded.
         </p>
       </div>
     </div>
@@ -419,13 +477,17 @@
   /* ------------------------------------------------------------------
      CONSTANTS
   ------------------------------------------------------------------ */
-  var STRIP_W = 400, STRIP_H = 1200;
+  var STRIP_W = 400;
   var MARGIN = 30, GAP = 20, FOOTER_H = 170;
-  var CELL_W = STRIP_W - MARGIN * 2;                                  // 340
-  var CELL_H = (STRIP_H - MARGIN - FOOTER_H - GAP * 3) / 4;           // 235
+  var CELL_W = STRIP_W - MARGIN * 2;   // 340
+  var CELL_H = 235;
   var ASPECT = CELL_W / CELL_H;
-  var SHOT_COUNT = 4;
   var COUNT_SECONDS = 3;
+  var ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+  var INK = '#3b2f22';
+
+  // 2 cuts = 400x690, 4 cuts = 400x1200 (1:3), 6 cuts = 400x1710
+  function stripHeight(n) { return MARGIN + n * CELL_H + (n - 1) * GAP + FOOTER_H; }
 
   var FILTERS = {
     warmth: {
@@ -455,10 +517,15 @@
   var state = {
     screen: 'idle',
     stream: null,
-    shots: [],          // Base64 data URLs
-    images: [],         // decoded Image objects for the gallery
+    count: 4,
+    shots: [],
+    images: [],
     filter: 'warmth',
     frame: 'cream',
+    grain: 'classic',
+    stickers: [],        // {type, x, y, size, rot, flip} in canvas pixels
+    selected: -1,
+    base: null,          // offscreen canvas: frame + photos + footer
     running: false,
     abort: false,
     renderToken: 0,
@@ -467,7 +534,7 @@
   };
 
   var $ = function (id) { return document.getElementById(id); };
-  var video = $('video'), strip = $('strip');
+  var video = $('video'), strip = $('strip'), sel = $('sel');
   var audioCtx = null;
 
   var SUPPORTS_CTX_FILTER = (function () {
@@ -478,6 +545,7 @@
      HELPERS
   ------------------------------------------------------------------ */
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
   function toast(msg) {
     var t = $('toast');
@@ -488,6 +556,9 @@
   }
 
   function setStatus(msg) { $('status').textContent = msg; }
+  function idleStatus() {
+    return 'Press capture to begin. ' + state.count + ' photos, three seconds apart.';
+  }
 
   function go(name) {
     state.screen = name;
@@ -516,6 +587,36 @@
       gain.connect(audioCtx.destination);
       src.start();
     } catch (e) { /* sound is optional */ }
+  }
+
+  /* ------------------------------------------------------------------
+     STRIP TYPE (2 / 4 / 6)
+  ------------------------------------------------------------------ */
+  function resetSlots() {
+    var n = state.count;
+    var box = $('slots');
+    box.innerHTML = '';
+    box.style.gridTemplateColumns = 'repeat(' + (n === 6 ? 3 : n) + ', minmax(0, 1fr))';
+    box.style.maxWidth = n === 2 ? '440px' : 'none';
+    box.style.margin = '0 auto';
+    for (var i = 0; i < n; i++) {
+      var d = document.createElement('div');
+      d.className = 'slot';
+      d.textContent = ROMAN[i];
+      box.appendChild(d);
+    }
+  }
+
+  function setCount(n) {
+    if (state.running) return;
+    state.count = n;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-count]'), function (b) {
+      b.classList.toggle('is-active', Number(b.getAttribute('data-count')) === n);
+    });
+    resetSlots();
+    setStatus(idleStatus());
+    // keep the blank preview strip in step with the choice
+    if (state.screen !== 'gallery') queueBase();
   }
 
   /* ------------------------------------------------------------------
@@ -560,7 +661,7 @@
     setStatus('Warming up the lens\u2026');
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      showCamError('This browser can\u2019t reach the camera. Camera access needs a modern browser and a secure (https) connection or a local file.');
+      showCamError('This browser can\u2019t reach the camera. Camera access needs a modern browser and a secure (https) connection.');
       return;
     }
 
@@ -583,7 +684,6 @@
       return;
     }
 
-    // The user may have navigated away while the permission prompt was open
     if (state.screen !== 'capture') {
       stream.getTracks().forEach(function (t) { t.stop(); });
       return;
@@ -591,9 +691,7 @@
 
     state.stream = stream;
     video.srcObject = stream;
-    try {
-      await video.play();
-    } catch (e) { /* autoplay will start once metadata loads */ }
+    try { await video.play(); } catch (e) { /* autoplay will start once metadata loads */ }
 
     if (!video.videoWidth) {
       await new Promise(function (resolve) {
@@ -613,7 +711,7 @@
     $('camLoading').style.display = 'none';
     $('btn-capture').disabled = false;
     $('poseLabel').textContent = 'Ready when you are';
-    setStatus('Press capture to begin. Four photos, three seconds apart.');
+    setStatus(idleStatus());
   }
 
   function stopCamera() {
@@ -628,17 +726,6 @@
   /* ------------------------------------------------------------------
      CAPTURE LOOP
   ------------------------------------------------------------------ */
-  function resetSlots() {
-    var romans = ['I', 'II', 'III', 'IV'];
-    $('slots').innerHTML = '';
-    romans.forEach(function (r) {
-      var d = document.createElement('div');
-      d.className = 'slot';
-      d.textContent = r;
-      $('slots').appendChild(d);
-    });
-  }
-
   function fillSlot(i, dataUrl) {
     var slot = $('slots').children[i];
     if (!slot) return;
@@ -669,7 +756,7 @@
   function showCount(n) {
     var el = $('countNum');
     el.classList.remove('pop');
-    void el.offsetWidth;            // restart animation
+    void el.offsetWidth;
     el.textContent = String(n);
     el.classList.add('pop');
   }
@@ -698,6 +785,7 @@
     $('btn-cancel').classList.add('hidden');
     $('btn-back').classList.remove('hidden');
     $('btn-capture').classList.remove('hidden');
+    $('countPickerCapture').classList.remove('hidden');
     $('btn-capture').disabled = !state.cameraReady;
     clearCount();
   }
@@ -709,12 +797,15 @@
     state.shots = [];
     resetSlots();
 
+    var total = state.count;
+
     $('btn-capture').classList.add('hidden');
     $('btn-back').classList.add('hidden');
+    $('countPickerCapture').classList.add('hidden');
     $('btn-cancel').classList.remove('hidden');
 
-    for (var i = 0; i < SHOT_COUNT; i++) {
-      $('poseLabel').textContent = 'Pose ' + (i + 1) + ' of ' + SHOT_COUNT;
+    for (var i = 0; i < total; i++) {
+      $('poseLabel').textContent = 'Pose ' + (i + 1) + ' of ' + total;
       setStatus(i === 0 ? 'Get ready\u2026 here we go!' : 'Hold your pose \u2014 next one is coming up!');
 
       for (var n = COUNT_SECONDS; n >= 1; n--) {
@@ -737,7 +828,6 @@
     await sleep(900);
     if (state.abort) { endSequenceUI(); return; }
 
-    state.running = false;
     stopCamera();
     endSequenceUI();
     await enterGallery();
@@ -820,25 +910,367 @@
   }
 
   /* ------------------------------------------------------------------
-     VINTAGE CANVAS COMPILER
+     FILM GRAIN (None / Classic / Heavy)
   ------------------------------------------------------------------ */
-  var noiseTile = null;
+  var noiseTile = null, speckTile = null;
+
   function getNoiseTile() {
     if (noiseTile) return noiseTile;
     var c = document.createElement('canvas');
-    c.width = 160; c.height = 160;
+    c.width = 200; c.height = 200;
     var x = c.getContext('2d');
-    var id = x.createImageData(160, 160);
+    var id = x.createImageData(200, 200);
     for (var i = 0; i < id.data.length; i += 4) {
-      var v = Math.random() * 255;
-      id.data[i] = v; id.data[i + 1] = v * 0.92; id.data[i + 2] = v * 0.8;
-      id.data[i + 3] = 13 + Math.random() * 14;
+      var v = (Math.random() + Math.random() + Math.random()) / 3 * 255;
+      id.data[i] = v; id.data[i + 1] = v * 0.97; id.data[i + 2] = v * 0.93; id.data[i + 3] = 255;
     }
     x.putImageData(id, 0, 0);
     noiseTile = c;
     return c;
   }
 
+  function getSpeckTile() {
+    if (speckTile) return speckTile;
+    var c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    var x = c.getContext('2d');
+    var id = x.createImageData(256, 256);
+    for (var i = 0; i < id.data.length; i += 4) {
+      if (Math.random() < 0.035) {
+        var dark = Math.random() < 0.5;
+        var v = dark ? 20 : 255;
+        id.data[i] = v; id.data[i + 1] = v; id.data[i + 2] = v * 0.95;
+        id.data[i + 3] = 60 + Math.random() * 120;
+      }
+    }
+    x.putImageData(id, 0, 0);
+    speckTile = c;
+    return c;
+  }
+
+  function drawGrain(ctx, w, h) {
+    if (state.grain === 'none') return;
+    var heavy = state.grain === 'heavy';
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = heavy ? 1.0 : 0.55;
+    ctx.fillStyle = ctx.createPattern(getNoiseTile(), 'repeat');
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = heavy ? 1.0 : 0.5;
+    ctx.fillStyle = ctx.createPattern(getSpeckTile(), 'repeat');
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+  }
+
+  function setGrain(level) {
+    state.grain = level;
+    document.body.setAttribute('data-grain', level);
+    Array.prototype.forEach.call($('grainGroup').children, function (c) {
+      c.classList.toggle('is-active', c.getAttribute('data-grain') === level);
+    });
+    compose();
+  }
+
+  /* ------------------------------------------------------------------
+     STICKER LIBRARY (hand-drawn in vector, vintage palette)
+     Each draw function works in a normalised box about -1..1
+  ------------------------------------------------------------------ */
+  function outlineFill(c, fill, lw) {
+    c.fillStyle = fill;
+    c.fill();
+    c.lineWidth = lw || 0.08;
+    c.strokeStyle = INK;
+    c.lineJoin = 'round';
+    c.stroke();
+  }
+
+  function starPath(c, cx, cy, outer, inner, pts) {
+    c.beginPath();
+    for (var i = 0; i < pts * 2; i++) {
+      var r = i % 2 === 0 ? outer : inner;
+      var a = -Math.PI / 2 + i * Math.PI / pts;
+      var x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+    }
+    c.closePath();
+  }
+
+  function sparklePath(c, r) {
+    c.beginPath();
+    c.moveTo(0, -r);
+    c.quadraticCurveTo(0.14 * r, -0.14 * r, r, 0);
+    c.quadraticCurveTo(0.14 * r, 0.14 * r, 0, r);
+    c.quadraticCurveTo(-0.14 * r, 0.14 * r, -r, 0);
+    c.quadraticCurveTo(-0.14 * r, -0.14 * r, 0, -r);
+    c.closePath();
+  }
+
+  var STICKERS = {
+    heart: { hw: 0.98, hh: 0.82, size: 84, draw: function (c) {
+      c.beginPath();
+      c.moveTo(0, 0.85);
+      c.bezierCurveTo(-1.15, 0.15, -0.95, -0.95, 0, -0.4);
+      c.bezierCurveTo(0.95, -0.95, 1.15, 0.15, 0, 0.85);
+      c.closePath();
+      outlineFill(c, '#b5483d');
+      c.beginPath();
+      c.ellipse(-0.45, -0.28, 0.2, 0.11, -0.6, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(255,244,220,0.7)';
+      c.fill();
+    } },
+
+    star: { hw: 1, hh: 1, size: 84, draw: function (c) {
+      starPath(c, 0, 0.05, 1, 0.46, 5);
+      outlineFill(c, '#d9a93e');
+      c.beginPath();
+      c.arc(-0.22, -0.18, 0.1, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(255,244,210,0.75)';
+      c.fill();
+    } },
+
+    sparkle: { hw: 1, hh: 1, size: 90, draw: function (c) {
+      sparklePath(c, 1);
+      outlineFill(c, '#fff8e1');
+      c.save();
+      c.translate(0.62, -0.62);
+      sparklePath(c, 0.34);
+      outlineFill(c, '#fff8e1', 0.1);
+      c.restore();
+    } },
+
+    sunglasses: { hw: 1.02, hh: 0.45, size: 150, draw: function (c) {
+      c.lineCap = 'round';
+      c.lineJoin = 'round';
+      c.strokeStyle = '#1a130d';
+      c.lineWidth = 0.09;
+      c.beginPath();
+      c.moveTo(-0.9, -0.05); c.lineTo(-1, -0.22);
+      c.moveTo(0.9, -0.05); c.lineTo(1, -0.22);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(-0.14, 0.0);
+      c.quadraticCurveTo(0, -0.2, 0.14, 0.0);
+      c.stroke();
+      [-0.5, 0.5].forEach(function (x) {
+        c.beginPath();
+        c.ellipse(x, 0.08, 0.42, 0.34, 0, 0, Math.PI * 2);
+        var g = c.createLinearGradient(x - 0.4, -0.26, x + 0.4, 0.42);
+        g.addColorStop(0, '#3d332a');
+        g.addColorStop(1, '#0f0b08');
+        c.fillStyle = g;
+        c.fill();
+        c.lineWidth = 0.09;
+        c.strokeStyle = '#1a130d';
+        c.stroke();
+        c.beginPath();
+        c.arc(x - 0.08, 0.04, 0.22, Math.PI * 1.1, Math.PI * 1.45);
+        c.strokeStyle = 'rgba(255,255,255,0.5)';
+        c.lineWidth = 0.05;
+        c.stroke();
+      });
+    } },
+
+    bow: { hw: 1.05, hh: 0.95, size: 110, draw: function (c) {
+      // tails
+      c.beginPath();
+      c.moveTo(-0.08, 0.15); c.lineTo(-0.55, 0.9); c.lineTo(-0.25, 0.85); c.lineTo(0, 0.3); c.closePath();
+      outlineFill(c, '#a63f52');
+      c.beginPath();
+      c.moveTo(0.08, 0.15); c.lineTo(0.55, 0.9); c.lineTo(0.25, 0.85); c.lineTo(0, 0.3); c.closePath();
+      outlineFill(c, '#a63f52');
+      // loops
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.bezierCurveTo(-0.4, -0.95, -1.05, -0.75, -1.02, -0.1);
+      c.bezierCurveTo(-1.0, 0.6, -0.4, 0.9, 0, 0);
+      c.closePath();
+      outlineFill(c, '#c8566a');
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.bezierCurveTo(0.4, -0.95, 1.05, -0.75, 1.02, -0.1);
+      c.bezierCurveTo(1.0, 0.6, 0.4, 0.9, 0, 0);
+      c.closePath();
+      outlineFill(c, '#c8566a');
+      // knot
+      c.beginPath();
+      c.ellipse(0, 0.02, 0.2, 0.27, 0, 0, Math.PI * 2);
+      outlineFill(c, '#a63f52');
+    } },
+
+    flower: { hw: 0.95, hh: 0.95, size: 96, draw: function (c) {
+      for (var i = 0; i < 5; i++) {
+        var a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+        c.beginPath();
+        c.arc(Math.cos(a) * 0.52, Math.sin(a) * 0.52, 0.4, 0, Math.PI * 2);
+        outlineFill(c, '#e9a3ad');
+      }
+      c.beginPath();
+      c.arc(0, 0, 0.3, 0, Math.PI * 2);
+      outlineFill(c, '#d9a93e');
+    } }
+  };
+  var STICKER_ORDER = ['heart', 'star', 'sparkle', 'sunglasses', 'bow', 'flower'];
+
+  function drawSticker(ctx, s) {
+    var def = STICKERS[s.type];
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rot);
+    ctx.scale(s.flip ? -1 : 1, 1);
+    ctx.scale(s.size / 2, s.size / 2);
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 2;
+    def.draw(ctx);
+    ctx.restore();
+  }
+
+  function buildTray() {
+    var tray = $('stickerTray');
+    tray.innerHTML = '';
+    STICKER_ORDER.forEach(function (key) {
+      var b = document.createElement('button');
+      b.className = 'btn-vintage sticker-btn';
+      b.setAttribute('aria-label', 'Add ' + key + ' sticker');
+      b.setAttribute('data-sticker', key);
+      var c = document.createElement('canvas');
+      c.width = 80; c.height = 80;
+      var x = c.getContext('2d');
+      x.translate(40, 40);
+      x.scale(31, 31);
+      STICKERS[key].draw(x);
+      b.appendChild(c);
+      tray.appendChild(b);
+    });
+  }
+
+  function addSticker(type) {
+    var def = STICKERS[type];
+    var n = state.stickers.length;
+    var photosH = state.count * CELL_H + (state.count - 1) * GAP;
+    state.stickers.push({
+      type: type,
+      x: clamp(STRIP_W / 2 + ((n % 3) - 1) * 45, 0, STRIP_W),
+      y: MARGIN + photosH / 2 + ((n % 4) - 1.5) * 40,
+      size: def.size,
+      rot: 0,
+      flip: false
+    });
+    state.selected = state.stickers.length - 1;
+    updateStickerUI();
+    compose();
+  }
+
+  function updateStickerUI() {
+    var has = state.selected >= 0 && state.selected < state.stickers.length;
+    ['st-bigger', 'st-smaller', 'st-rotate', 'st-flip', 'st-remove'].forEach(function (id) {
+      $(id).disabled = !has;
+    });
+    $('st-clear').disabled = state.stickers.length === 0;
+  }
+
+  /* ----- sticker dragging (mouse + touch) ----- */
+  var drag = null, raf = 0;
+
+  function scheduleCompose() {
+    if (raf) return;
+    raf = requestAnimationFrame(function () { raf = 0; compose(); });
+  }
+
+  function canvasPoint(cx, cy) {
+    var r = sel.getBoundingClientRect();
+    return { x: (cx - r.left) * sel.width / r.width, y: (cy - r.top) * sel.height / r.height };
+  }
+
+  function hitTest(p) {
+    for (var i = state.stickers.length - 1; i >= 0; i--) {
+      var s = state.stickers[i], def = STICKERS[s.type];
+      var dx = p.x - s.x, dy = p.y - s.y;
+      var cs = Math.cos(s.rot), sn = Math.sin(s.rot);
+      var lx = dx * cs + dy * sn;
+      var ly = -dx * sn + dy * cs;
+      var pad = 8;
+      if (Math.abs(lx) <= def.hw * s.size / 2 + pad && Math.abs(ly) <= def.hh * s.size / 2 + pad) return i;
+    }
+    return -1;
+  }
+
+  function startDrag(p) {
+    var i = hitTest(p);
+    if (i < 0) {
+      state.selected = -1;
+      updateStickerUI();
+      compose();
+      return false;
+    }
+    var s = state.stickers.splice(i, 1)[0];   // bring to front
+    state.stickers.push(s);
+    state.selected = state.stickers.length - 1;
+    drag = { dx: p.x - s.x, dy: p.y - s.y };
+    updateStickerUI();
+    compose();
+    return true;
+  }
+
+  function moveDrag(p) {
+    if (!drag) return;
+    var s = state.stickers[state.selected];
+    if (!s) return;
+    s.x = clamp(p.x - drag.dx, 0, sel.width);
+    s.y = clamp(p.y - drag.dy, 0, sel.height);
+    scheduleCompose();
+  }
+
+  function endDrag() {
+    drag = null;
+    sel.style.cursor = 'default';
+  }
+
+  sel.addEventListener('mousedown', function (e) {
+    e.preventDefault();
+    if (startDrag(canvasPoint(e.clientX, e.clientY))) sel.style.cursor = 'grabbing';
+  });
+  sel.addEventListener('mousemove', function (e) {
+    if (drag) return;
+    sel.style.cursor = hitTest(canvasPoint(e.clientX, e.clientY)) >= 0 ? 'grab' : 'default';
+  });
+  window.addEventListener('mousemove', function (e) {
+    if (drag) moveDrag(canvasPoint(e.clientX, e.clientY));
+  });
+  window.addEventListener('mouseup', endDrag);
+
+  sel.addEventListener('touchstart', function (e) {
+    var t = e.touches[0];
+    if (startDrag(canvasPoint(t.clientX, t.clientY))) e.preventDefault();   // only block scrolling when grabbing a sticker
+  }, { passive: false });
+  sel.addEventListener('touchmove', function (e) {
+    if (!drag) return;
+    e.preventDefault();
+    var t = e.touches[0];
+    moveDrag(canvasPoint(t.clientX, t.clientY));
+  }, { passive: false });
+  sel.addEventListener('touchend', endDrag);
+  sel.addEventListener('touchcancel', endDrag);
+
+  function withSelected(fn) {
+    var s = state.stickers[state.selected];
+    if (!s) return;
+    fn(s);
+    compose();
+  }
+
+  function removeSelected() {
+    if (state.selected < 0) return;
+    state.stickers.splice(state.selected, 1);
+    state.selected = -1;
+    updateStickerUI();
+    compose();
+  }
+
+  /* ------------------------------------------------------------------
+     VINTAGE CANVAS COMPILER
+  ------------------------------------------------------------------ */
   function dateStamp() {
     var d = new Date();
     var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -852,7 +1284,7 @@
           Promise.all([
             document.fonts.load('900 44px "Playfair Display"'),
             document.fonts.load('700 44px "Playfair Display"'),
-            document.fonts.load('20px "Special Elite"')
+            document.fonts.load('22px "Special Elite"')
           ]),
           sleep(2500)
         ]);
@@ -864,34 +1296,35 @@
     if ('letterSpacing' in ctx) ctx.letterSpacing = px + 'px';
   }
 
-  async function renderStrip() {
+  // Builds the frame, photos and footer onto an offscreen canvas, then composes.
+  async function buildBase() {
     var token = ++state.renderToken;
     await ensureFonts();
     if (token !== state.renderToken) return;
 
-    var ctx = strip.getContext('2d');
+    var n = state.count;
+    var H = stripHeight(n);
     var fr = FRAMES[state.frame];
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, STRIP_W, STRIP_H);
+
+    var b = document.createElement('canvas');
+    b.width = STRIP_W; b.height = H;
+    var ctx = b.getContext('2d');
 
     // Card stock
     ctx.fillStyle = fr.bg;
-    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
-
-    // Subtle paper sheen
-    var sheen = ctx.createLinearGradient(0, 0, STRIP_W, STRIP_H);
+    ctx.fillRect(0, 0, STRIP_W, H);
+    var sheen = ctx.createLinearGradient(0, 0, STRIP_W, H);
     sheen.addColorStop(0, 'rgba(255,255,255,0.10)');
     sheen.addColorStop(0.5, 'rgba(255,255,255,0)');
     sheen.addColorStop(1, 'rgba(0,0,0,0.08)');
     ctx.fillStyle = sheen;
-    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
+    ctx.fillRect(0, 0, STRIP_W, H);
 
     // Photos
-    for (var i = 0; i < SHOT_COUNT; i++) {
+    for (var i = 0; i < n; i++) {
       var x = MARGIN, y = MARGIN + i * (CELL_H + GAP);
       var img = state.images[i];
 
-      // soft drop shadow
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.35)';
       ctx.shadowBlur = 7;
@@ -900,11 +1333,8 @@
       ctx.fillRect(x, y, CELL_W, CELL_H);
       ctx.restore();
 
-      if (img) {
-        ctx.drawImage(filteredCell(img, state.filter), x, y);
-      }
+      if (img) ctx.drawImage(filteredCell(img, state.filter), x, y);
 
-      // inner edge and keyline
       ctx.lineWidth = 2;
       ctx.strokeStyle = fr.edge;
       ctx.strokeRect(x + 1, y + 1, CELL_W - 2, CELL_H - 2);
@@ -914,7 +1344,7 @@
     }
 
     // Footer
-    var fy = MARGIN + 4 * CELL_H + 3 * GAP;          // 1030
+    var fy = MARGIN + n * CELL_H + (n - 1) * GAP;
     var cx = STRIP_W / 2;
 
     ctx.strokeStyle = fr.rule;
@@ -928,10 +1358,9 @@
     ctx.textBaseline = 'alphabetic';
 
     ctx.font = '900 44px "Playfair Display", Georgia, serif';
-    setLetterSpacing(ctx, 4);
-    ctx.fillText('VOLONTÉ', cx, fy + 78);
+    setLetterSpacing(ctx, 8);
+    ctx.fillText('VOLONT\u00C9', cx, fy + 78);
 
-    // diamond ornament
     ctx.save();
     ctx.translate(cx, fy + 96);
     ctx.rotate(Math.PI / 4);
@@ -948,26 +1377,70 @@
     setLetterSpacing(ctx, 3);
     ctx.fillText(dateStamp(), cx, fy + 128);
 
+    ctx.font = '12px "Special Elite", "Courier Prime", "Courier New", monospace';
+    setLetterSpacing(ctx, 3);
+    ctx.globalAlpha = 0.75;
+    ctx.fillText('\u00C0 VOLONT\u00C9 \u00B7 ' + n + ' CUTS', cx, fy + 154);
+    ctx.globalAlpha = 1;
     setLetterSpacing(ctx, 0);
 
-    // Film grain
-    ctx.save();
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = ctx.createPattern(getNoiseTile(), 'repeat');
-    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
-    ctx.restore();
+    if (token !== state.renderToken) return;
+    state.base = b;
 
-    // Edge aging
-    var vg = ctx.createRadialGradient(cx, STRIP_H / 2, STRIP_H * 0.25, cx, STRIP_H / 2, STRIP_H * 0.75);
+    if (strip.width !== STRIP_W || strip.height !== H) {
+      strip.width = STRIP_W; strip.height = H;
+      sel.width = STRIP_W; sel.height = H;
+    }
+    compose();
+  }
+
+  function queueBase() {
+    state.renderPromise = buildBase();
+    return state.renderPromise;
+  }
+
+  // Fast final composite: base + stickers + grain + aging. Runs on every sticker move.
+  function compose() {
+    if (!state.base) return;
+    var W = strip.width, H = strip.height;
+    var ctx = strip.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(state.base, 0, 0);
+
+    state.stickers.forEach(function (s) { drawSticker(ctx, s); });
+
+    drawGrain(ctx, W, H);
+
+    var vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.75);
     vg.addColorStop(0, 'rgba(90,60,20,0)');
     vg.addColorStop(1, 'rgba(90,60,20,0.14)');
     ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, STRIP_W, STRIP_H);
+    ctx.fillRect(0, 0, W, H);
+
+    drawSelection();
   }
 
-  function queueRender() {
-    state.renderPromise = renderStrip();
-    return state.renderPromise;
+  // Selection outline lives on its own canvas so it never ends up in the download.
+  function drawSelection() {
+    var ctx = sel.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, sel.width, sel.height);
+    var s = state.stickers[state.selected];
+    if (!s) return;
+    var def = STICKERS[s.type];
+    var hw = def.hw * s.size / 2 + 8, hh = def.hh * s.size / 2 + 8;
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rot);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(30,20,10,0.85)';
+    ctx.strokeRect(-hw, -hh, hw * 2, hh * 2);
+    ctx.lineWidth = 2;
+    ctx.setLineDash([7, 5]);
+    ctx.strokeStyle = '#e8c36a';
+    ctx.strokeRect(-hw, -hh, hw * 2, hh * 2);
+    ctx.restore();
   }
 
   function loadImage(src) {
@@ -986,8 +1459,11 @@
       toast('Could not read the captured photos. Please retake.');
       return;
     }
+    state.stickers = [];
+    state.selected = -1;
+    updateStickerUI();
     go('gallery');
-    await queueRender();
+    await queueBase();
   }
 
   /* ------------------------------------------------------------------
@@ -1020,7 +1496,7 @@
         if (navigator.share && navigator.canShare) {
           var blob = await new Promise(function (resolve) { strip.toBlob(resolve, 'image/png'); });
           if (blob) {
-            var file = new File([blob], 'vintage_Volonte_strip.png', { type: 'image/png' });
+            var file = new File([blob], 'volonte_photostrip.png', { type: 'image/png' });
             if (navigator.canShare({ files: [file] })) {
               await navigator.share({ files: [file], title: 'Volonté' });
               toast('Choose \u201CSave Image\u201D to keep it in Photos \u2726');
@@ -1029,16 +1505,15 @@
           }
         }
       } catch (e) {
-        if (e && e.name === 'AbortError') return;   // user closed the share sheet
+        if (e && e.name === 'AbortError') return;
       }
-      // No share support: show the image to press-and-hold save
       showSaveOverlay(url);
       return;
     }
 
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'vintage_Volonte_strip.png';
+    a.download = 'volonte_photostrip.png';
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
@@ -1052,6 +1527,9 @@
   function openDarkroom() {
     state.shots = [];
     state.images = [];
+    state.stickers = [];
+    state.selected = -1;
+    updateStickerUI();
     resetSlots();
     go('capture');
     startCamera();
@@ -1063,8 +1541,11 @@
     go('idle');
   }
 
+  Array.prototype.forEach.call(document.querySelectorAll('[data-count]'), function (b) {
+    b.addEventListener('click', function () { setCount(Number(b.getAttribute('data-count'))); });
+  });
+
   $('btn-start').addEventListener('click', function () {
-    // unlock audio on first gesture
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (AC && !audioCtx) audioCtx = new AC();
@@ -1076,7 +1557,7 @@
   $('btn-capture').addEventListener('click', runSequence);
   $('btn-cancel').addEventListener('click', function () {
     state.abort = true;
-    setStatus('Session cancelled. Press capture to try again.');
+    setStatus('Session cancelled. ' + idleStatus());
     $('poseLabel').textContent = 'Ready when you are';
   });
   $('btn-back').addEventListener('click', leaveToParlor);
@@ -1098,7 +1579,7 @@
     Array.prototype.forEach.call($('filterGroup').children, function (c) {
       c.classList.toggle('is-active', c === b);
     });
-    queueRender();
+    queueBase();
   });
 
   $('frameGroup').addEventListener('click', function (e) {
@@ -1108,7 +1589,38 @@
     Array.prototype.forEach.call($('frameGroup').children, function (c) {
       c.classList.toggle('is-active', c === b);
     });
-    queueRender();
+    queueBase();
+  });
+
+  $('grainGroup').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-grain]');
+    if (!b) return;
+    setGrain(b.getAttribute('data-grain'));
+  });
+
+  $('stickerTray').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-sticker]');
+    if (!b) return;
+    addSticker(b.getAttribute('data-sticker'));
+  });
+
+  $('st-bigger').addEventListener('click', function () { withSelected(function (s) { s.size = Math.min(380, s.size * 1.15); }); });
+  $('st-smaller').addEventListener('click', function () { withSelected(function (s) { s.size = Math.max(24, s.size / 1.15); }); });
+  $('st-rotate').addEventListener('click', function () { withSelected(function (s) { s.rot += Math.PI / 12; }); });
+  $('st-flip').addEventListener('click', function () { withSelected(function (s) { s.flip = !s.flip; }); });
+  $('st-remove').addEventListener('click', removeSelected);
+  $('st-clear').addEventListener('click', function () {
+    state.stickers = [];
+    state.selected = -1;
+    updateStickerUI();
+    compose();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (state.screen === 'gallery' && (e.key === 'Delete' || e.key === 'Backspace') && state.selected >= 0) {
+      e.preventDefault();
+      removeSelected();
+    }
   });
 
   window.addEventListener('pagehide', stopCamera);
@@ -1121,8 +1633,14 @@
     }
   });
 
-  // Paint a blank placeholder strip so the canvas is never empty
-  queueRender();
+  /* ------------------------------------------------------------------
+     INIT
+  ------------------------------------------------------------------ */
+  buildTray();
+  resetSlots();
+  setStatus(idleStatus());
+  updateStickerUI();
+  queueBase();   // paint a blank placeholder strip so the canvas is never empty
 })();
 </script>
 </body>
